@@ -1,0 +1,9 @@
+{
+  "name": "load-balancing-demo",
+  "version": "1.0.0",
+  "description": "Cypress test suite to demonstrate smart load balancing in Testkube",
+  "devDependencies": {
+    "cypress": "14.5.1"
+  }
+}
+
