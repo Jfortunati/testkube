@@ -615,3 +615,59 @@ spec:
       workingDir: /data/artifacts
       paths:
       - '**/*'
+---
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: cypress-workflow-load-balancing-demo
+  labels:
+    core-tests: workflows
+    tool: cypress
+    artifacts: "true"
+    category: e2e-ui-testing
+    load-balancing: "true"
+  annotations:
+    testkube.io/icon: cypress
+spec:
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      paths:
+      - test/cypress/load-balancing-demo
+  container:
+    image: cypress/included:14.5.1
+    workingDir: /data/repo/test/cypress/load-balancing-demo
+    resources:
+      requests:
+        cpu: 128m
+        memory: 128Mi
+  job:
+    activeDeadlineSeconds: 600
+  steps:
+  - name: Run tests
+    parallel:
+      maxCount: 5
+      shards:
+        shardFile: 'glob("cypress/shards/shard-*.txt")'
+      description: '{{ relpath(shard.shardFile, "cypress/shards") }}'
+      transfer:
+      - from: /data/repo
+      fetch:
+      - from: /data/artifacts
+      container:
+        resources:
+          requests:
+            cpu: 1500m
+            memory: 2Gi
+      run:
+        workingDir: /data/repo/test/cypress/load-balancing-demo
+        shell: |
+          SPEC_FILES=$(cat "{{ shard.shardFile }}" | grep -v '^[[:space:]]*$' | tr '\n' ',' | sed 's/,$//')
+          npx cypress run \
+            --config '{"video":true,"screenshotsFolder":"/data/artifacts/screenshots","videosFolder":"/data/artifacts/videos"}' \
+            --spec "$SPEC_FILES"
+    artifacts:
+      workingDir: /data/artifacts
+      paths:
+      - '**/*'
