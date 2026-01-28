@@ -278,3 +278,58 @@ spec:
         workingDir: /data/artifacts/
         paths:
         - '**/*'
+---
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: playwright-workflow-load-balancing-demo
+  labels:
+    core-tests: workflows
+    tool: playwright
+    artifacts: "true"
+    category: e2e-ui-testing
+    load-balancing: "true"
+  annotations:
+    testkube.io/icon: playwright
+spec:
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      paths:
+      - test/playwright/playwright-load-balancing-demo
+  container:
+    image: mcr.microsoft.com/playwright:v1.56.1
+    workingDir: /data/repo/test/playwright/playwright-load-balancing-demo
+    resources:
+      requests:
+        cpu: 128m
+        memory: 128Mi
+  job:
+    activeDeadlineSeconds: 600
+  steps:
+  - name: Run tests
+    parallel:
+      maxCount: 5
+      shards:
+        shardFile: 'glob("shards/shard-*.txt")'
+      description: '{{ relpath(shard.shardFile, "shards") }}'
+      transfer:
+      - from: /data/repo
+      fetch:
+      - from: /data/artifacts
+      container:
+        resources:
+          requests:
+            cpu: 1500m
+            memory: 1500Mi
+      run:
+        workingDir: /data/repo/test/playwright/playwright-load-balancing-demo
+        shell: |
+          npm install
+          SPEC_FILES=$(cat "{{ shard.shardFile }}" | grep -v '^[[:space:]]*$' | tr '\n' ' ')
+          npx playwright test $SPEC_FILES
+    artifacts:
+      workingDir: /data/artifacts
+      paths:
+      - '**/*'
