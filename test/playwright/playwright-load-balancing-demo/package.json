@@ -1,0 +1,8 @@
+{
+  "name": "playwright-load-balancing-demo",
+  "version": "1.0.0",
+  "description": "Playwright test suite to demonstrate smart load balancing in Testkube",
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}

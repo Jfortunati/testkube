@@ -665,7 +665,7 @@ spec:
         shell: |
           SPEC_FILES=$(cat "{{ shard.shardFile }}" | grep -v '^[[:space:]]*$' | tr '\n' ',' | sed 's/,$//')
           npx cypress run \
-            --config '{"video":true,"screenshotsFolder":"/data/artifacts/screenshots","videosFolder":"/data/artifacts/videos"}' \
+            --config '{"video":false,"screenshotOnRunFailure":false}' \
             --spec "$SPEC_FILES"
     artifacts:
       workingDir: /data/artifacts
