@@ -287,6 +287,7 @@ metadata:
     core-tests: workflows
     tool: playwright
     artifacts: "true"
+    junit: "true"
     category: e2e-ui-testing
     load-balancing: "true"
   annotations:
@@ -326,9 +327,12 @@ spec:
       run:
         workingDir: /data/repo/test/playwright/playwright-load-balancing-demo
         shell: |
+          mkdir -p /data/artifacts
+          SHARD_BASE=$(basename "{{ shard.shardFile }}" .txt)
+          export PLAYWRIGHT_JUNIT_OUTPUT_NAME="/data/artifacts/junit-${SHARD_BASE}.xml"
           npm install
           SPEC_FILES=$(cat "{{ shard.shardFile }}" | grep -v '^[[:space:]]*$' | tr '\n' ' ')
-          npx playwright test $SPEC_FILES
+          npx playwright test --reporter=list,junit $SPEC_FILES
     artifacts:
       workingDir: /data/artifacts
       paths:
