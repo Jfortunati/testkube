@@ -1,10 +1,1 @@
-tests/LB-test-05.spec.js
-tests/LB-test-10.spec.js
-tests/LB-test-15.spec.js
-tests/LB-test-20.spec.js
-tests/LB-test-25.spec.js
-tests/LB-test-30.spec.js
-tests/LB-test-35.spec.js
-tests/LB-test-40.spec.js
-tests/LB-test-45.spec.js
-tests/LB-test-50.spec.js
+tests/LB-test-21.spec.js
