@@ -45,23 +45,24 @@ const (
 
 func NewDevBoxCommand() *cobra.Command {
 	var (
-		oss                  bool
-		rawDevboxName        string
-		open                 bool
-		baseAgentImage       string
-		baseInitImage        string
-		baseToolkitImage     string
-		syncLocalResources   []string
-		runnersCount         uint16
-		gitopsEnabled        bool
-		disableDefaultAgent  bool
-		enableTestTriggers   bool
-		enableCronjobs       bool
-		enableK8sControllers bool
-		enableWebhooks       bool
-		forcedOs             string
-		forcedArchitecture   string
-		executionNamespace   string
+		oss                          bool
+		rawDevboxName                string
+		open                         bool
+		baseAgentImage               string
+		baseInitImage                string
+		baseToolkitImage             string
+		syncLocalResources           []string
+		runnersCount                 uint16
+		gitopsEnabled                bool
+		disableDefaultAgent          bool
+		enableTestTriggers           bool
+		enableCronjobs               bool
+		enableK8sControllers         bool
+		enableWebhooks               bool
+		enableSourceOfTruthMigration bool
+		forcedOs                     string
+		forcedArchitecture           string
+		executionNamespace           string
 	)
 
 	cmd := &cobra.Command{
@@ -152,7 +153,7 @@ func NewDevBoxCommand() *cobra.Command {
 
 			// Initialize wrappers over cluster resources
 			interceptor := devutils.NewInterceptor(interceptorPod, baseInitImage, baseToolkitImage, interceptorBin, executionNamespace)
-			agent := devutils.NewAgent(agentPod, cloud, baseAgentImage, baseInitImage, baseToolkitImage, enableCronjobs, enableTestTriggers, enableK8sControllers, enableWebhooks, executionNamespace)
+			agent := devutils.NewAgent(agentPod, cloud, baseAgentImage, baseInitImage, baseToolkitImage, enableCronjobs, enableTestTriggers, enableK8sControllers, enableWebhooks, enableSourceOfTruthMigration, executionNamespace)
 			binaryStorage := devutils.NewBinaryStorage(binaryStoragePod, binaryStorageBin)
 			mongo := devutils.NewMongo(mongoPod)
 			minio := devutils.NewMinio(minioPod)
@@ -871,6 +872,7 @@ func NewDevBoxCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&rawDevboxName, "name", "n", fmt.Sprintf("%d", time.Now().UnixNano()), "devbox name")
+	cmd.Flags().MarkShorthandDeprecated("name", "please use --name instead")
 	cmd.Flags().StringSliceVarP(&syncLocalResources, "fssync", "s", nil, "synchronise resources at local paths")
 	cmd.Flags().BoolVarP(&gitopsEnabled, "gitops-agent", "g", false, "enable GitOps agent")
 	cmd.Flags().BoolVarP(&open, "open", "o", false, "open dashboard in browser")
@@ -887,6 +889,7 @@ func NewDevBoxCommand() *cobra.Command {
 	cmd.Flags().StringVar(&forcedOs, "os", "", "force different OS for binary builds")
 	cmd.Flags().StringVar(&forcedArchitecture, "arch", "", "force different architecture for binary builds")
 	cmd.Flags().BoolVar(&enableK8sControllers, "enable-k8s-controllers", false, "should enable Kubernetes controllers")
+	cmd.Flags().BoolVar(&enableSourceOfTruthMigration, "enable-source-of-truth-migration", false, "enable source of truth migration (disables forced superagent mode)")
 
 	return cmd
 }

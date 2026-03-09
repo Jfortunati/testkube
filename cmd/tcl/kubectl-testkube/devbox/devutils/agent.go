@@ -20,31 +20,33 @@ import (
 )
 
 type Agent struct {
-	pod                  *PodObject
-	cloud                *CloudObject
-	agentImage           string
-	initProcessImage     string
-	toolkitImage         string
-	enableCronjobs       bool
-	enableTestTriggers   bool
-	enableK8sControllers bool
-	enableWebhooks       bool
-	executionNamespace   string
-	env                  *client.Environment // Store environment for pod recreation
+	pod                          *PodObject
+	cloud                        *CloudObject
+	agentImage                   string
+	initProcessImage             string
+	toolkitImage                 string
+	enableCronjobs               bool
+	enableTestTriggers           bool
+	enableK8sControllers         bool
+	enableWebhooks               bool
+	enableSourceOfTruthMigration bool
+	executionNamespace           string
+	env                          *client.Environment // Store environment for pod recreation
 }
 
-func NewAgent(pod *PodObject, cloud *CloudObject, agentImage, initProcessImage, toolkitImage string, enableCronjobs, enableTestTriggers, enableK8sControllers, enableWebhooks bool, executionNamespace string) *Agent {
+func NewAgent(pod *PodObject, cloud *CloudObject, agentImage, initProcessImage, toolkitImage string, enableCronjobs, enableTestTriggers, enableK8sControllers, enableWebhooks, enableSourceOfTruthMigration bool, executionNamespace string) *Agent {
 	return &Agent{
-		pod:                  pod,
-		cloud:                cloud,
-		agentImage:           agentImage,
-		initProcessImage:     initProcessImage,
-		toolkitImage:         toolkitImage,
-		enableCronjobs:       enableCronjobs,
-		enableTestTriggers:   enableTestTriggers,
-		enableK8sControllers: enableK8sControllers,
-		enableWebhooks:       enableWebhooks,
-		executionNamespace:   executionNamespace,
+		pod:                          pod,
+		cloud:                        cloud,
+		agentImage:                   agentImage,
+		initProcessImage:             initProcessImage,
+		toolkitImage:                 toolkitImage,
+		enableCronjobs:               enableCronjobs,
+		enableTestTriggers:           enableTestTriggers,
+		enableK8sControllers:         enableK8sControllers,
+		enableWebhooks:               enableWebhooks,
+		enableSourceOfTruthMigration: enableSourceOfTruthMigration,
+		executionNamespace:           executionNamespace,
 	}
 }
 
@@ -75,6 +77,9 @@ func (r *Agent) generatePodSpec(env *client.Environment) *corev1.Pod {
 	if r.enableK8sControllers {
 		envVariables = append(envVariables, corev1.EnvVar{Name: "ENABLE_K8S_CONTROLLERS", Value: "true"})
 	}
+	if r.enableSourceOfTruthMigration {
+		envVariables = append(envVariables, corev1.EnvVar{Name: "WARNING_UNSAFE_FORCE_SUPERAGENT_MODE", Value: "false"})
+	}
 	if env != nil {
 		tlsInsecure := "false"
 		if r.cloud.AgentInsecure() {
@@ -86,7 +91,7 @@ func (r *Agent) generatePodSpec(env *client.Environment) *corev1.Pod {
 			{Name: "TESTKUBE_PRO_ENV_ID", Value: env.Id},
 			{Name: "TESTKUBE_PRO_URL", Value: r.cloud.AgentURI()},
 			{Name: "TESTKUBE_PRO_TLS_INSECURE", Value: tlsInsecure},
-			{Name: "TESTKUBE_PRO_TLS_SKIP_VERIFY", Value: "true"},
+			{Name: "TESTKUBE_PRO_SKIP_VERIFY", Value: "true"},
 		}...)
 	} else {
 		envVariables = append(envVariables, []corev1.EnvVar{
